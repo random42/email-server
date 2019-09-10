@@ -1,12 +1,15 @@
 package controllers;
 
 import db.EmailDb;
-import models.Email;
-import socket.EmailSocket;
+import models.*;
+import threads.EmailServer;
+
+import java.util.*;
 
 public class EmailCtrl {
 
     private static EmailCtrl instance;
+    private Log log;
 
     public static EmailCtrl getInstance() {
         if (instance == null) {
@@ -15,27 +18,46 @@ public class EmailCtrl {
         return instance;
     }
 
-    private String user;
-    private EmailSocket socket;
+    private EmailServer server;
     private EmailDb db;
 
     private EmailCtrl() {
-        socket = EmailSocket.getInstance();
+        server = EmailServer.getInstance();
         db = EmailDb.getInstance();
+        log = new Log();
     }
 
-    public void setUser(String u) {
-        user = u;
+    public boolean isUserOnline(String user) {
+        return server.hasUser(user);
     }
 
     public void send(Email e) {
-        socket.send(e);
+        //server.send(e);
         db.saveEmail(e);
     }
 
-    public void onEmailReceived(Email e) {
+    public synchronized void onEmail(Email e) {
         db.saveEmail(e);
-        System.out.println("Received");
-        System.out.println(e);
+        log(e.getSender() + " sent an email.");
+        server.sendEmail(e);
+    }
+
+    public synchronized void onAuth(String user, Date last) {
+        List<Email> emails = db.getUserEmailsAfter(user, last);
+        server.sendToUser(emails, user);
+    }
+
+    public void debugThreads() {
+        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+        System.out.println(threadSet);
+    }
+
+    public void log(String msg) {
+        System.out.println(msg);
+        log.add(msg);
+    }
+
+    public List<String> getLogs() {
+        return log.get();
     }
 }

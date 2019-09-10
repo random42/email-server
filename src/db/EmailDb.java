@@ -3,7 +3,7 @@ package db;
 import models.Email;
 
 public class EmailDb {
-    public static final String root = "data";
+    public static final String rootDir = "data";
     private static EmailDb instance;
 
     public static EmailDb getInstance() {
