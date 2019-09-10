@@ -27,24 +27,29 @@ public class EmailCtrl {
         log = new Log();
     }
 
-    public boolean isUserOnline(String user) {
-        return server.hasUser(user);
+//    public boolean isUserOnline(String user) {
+//        return server.hasUser(user);
+//    }
+
+    public void startServer() {
+        server.startServer();
     }
 
-    public void send(Email e) {
-        //server.send(e);
+    public void onEmail(Email e) {
         db.saveEmail(e);
-    }
-
-    public synchronized void onEmail(Email e) {
-        db.saveEmail(e);
-        log(e.getSender() + " sent an email.");
+        log(e.getSender() + " sent an email with ID: " + e.getId());
         server.sendEmail(e);
     }
 
-    public synchronized void onAuth(String user, Date last) {
+    public void onAuth(String user, Date last) {
+        log(user + "authenticated.");
         List<Email> emails = db.getUserEmailsAfter(user, last);
         server.sendToUser(emails, user);
+    }
+
+    public void onUserDisconnected(String user) {
+        if (user != null)
+            log(user + " closed the connection.");
     }
 
     public void debugThreads() {
@@ -57,7 +62,7 @@ public class EmailCtrl {
         log.add(msg);
     }
 
-    public List<String> getLogs() {
-        return log.get();
+    public Log getLog() {
+        return log;
     }
 }

@@ -3,8 +3,8 @@ package models;
 import java.util.*;
 
 public class EmailAccount {
-    String name;
-    List<Email> inbox;
+    private String name;
+    private List<Email> inbox;
 
     public EmailAccount(String name) {
         this.name = name;
@@ -23,5 +23,9 @@ public class EmailAccount {
     public void removeEmail(Email email) {
         inbox.remove(email);
     }
+
+    public List<Email> getInbox() { return inbox; }
+
+    public String getName() {return name;}
 
 }

@@ -1,17 +1,18 @@
 package models;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class Email {
+public class Email implements Serializable {
 
     private int id;
     private String sender;
-    private List<String> receivers;
+    private Set<String> receivers;
     private String subject;
     private String body;
     private Date date;
 
-    public Email(int i, String s1, List<String> r, String s2, String b, Date d) {
+    public Email(int i, String s1, Set<String> r, String s2, String b, Date d) {
         id = i;
         sender = s1;
         receivers = r;
@@ -34,7 +35,7 @@ public class Email {
         return sender;
     }
 
-    public List<String> getReceivers() {
+    public Set<String> getReceivers() {
         return receivers;
     }
 
@@ -50,5 +51,8 @@ public class Email {
         return date;
     }
 
+    public boolean isReceiver(String user) {
+        return receivers.contains(user);
+    }
 
 }

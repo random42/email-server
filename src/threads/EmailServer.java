@@ -48,7 +48,7 @@ public class EmailServer extends Thread {
         sendToUser(e, user);
     }
 
-    public void sendToUser(List<Email> emails, String user) {
+    public synchronized void sendToUser(List<Email> emails, String user) {
         try {
             ObjectOutputStream out = new ObjectOutputStream(getSocket(user).getOutputStream());
             ServerMessage msg = new ServerMessage(emails);

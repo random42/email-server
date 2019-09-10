@@ -29,13 +29,17 @@ public class SocketListener extends Thread {
     public void run() {
         while (!socket.isClosed()) {
             ClientMessage m = listen();
-            if (m.getType() == ClientMessage.Type.AUTH) { // msg type == AUTH
+            if (m == null) continue; // socket closed (unless some Exception has been printed)
+            else if (m.getType() == ClientMessage.Type.AUTH) { // msg type == AUTH
                 if (user != null) // auth already done
-                    ctrl.log(m.getUser() + " tried to authenticate again.");
+                    ctrl.log(m.getUser() + " tried to authenticate more than once.");
                 else { // auth
                     user = m.getUser();
+                    if (server.hasUser(user)) { // user has already a connected client opened that will be substituted by the new one
+                        ctrl.log(user + " authenticated on a new client.");
+                    }
                     server.setUser(user, socket);
-                    ctrl.onAuth(user);
+                    ctrl.onAuth(user, m.getLastDate());
                 }
             } else { // msg type == EMAIL
                 Email email = m.getEmail();
@@ -45,20 +49,13 @@ public class SocketListener extends Thread {
                     ctrl.onEmail(email);
             }
         }
+        // socket closed
         server.removeUser(user);
+        ctrl.onUserDisconnected(user);
     }
 
 
-    public void close() {
-        try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public ClientMessage listen() {
+    private ClientMessage listen() {
         try {
             return (ClientMessage)in.readObject();
         } catch (IOException e) { // socket closed
