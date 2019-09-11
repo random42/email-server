@@ -1,8 +1,10 @@
 package socket;
 
-import models.*;
+import models.Email;
+
 import java.io.Serializable;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ServerMessage implements Serializable {
 
@@ -15,7 +17,7 @@ public class ServerMessage implements Serializable {
 
     public ServerMessage(Email email) {
         type = Type.EMAIL;
-        emails = new ArrayList<>();
+        emails = new LinkedList<>();
         emails.add(email);
     }
 
@@ -26,7 +28,7 @@ public class ServerMessage implements Serializable {
 
     public Type getType() {return type;}
 
-    public List<Email> getEmail() {return emails;}
+    public List<Email> getEmails() {return emails;}
 
 
 }

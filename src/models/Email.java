@@ -1,7 +1,8 @@
 package models;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Date;
+import java.util.Set;
 
 public class Email implements Serializable {
 
@@ -12,13 +13,13 @@ public class Email implements Serializable {
     private String body;
     private Date date;
 
-    public Email(int i, String s1, Set<String> r, String s2, String b, Date d) {
-        id = i;
-        sender = s1;
-        receivers = r;
-        subject = s2;
-        body = b;
-        date = d;
+    public Email(int id, String sender, Set<String> receivers, String subject, String body, Date date) {
+        this.id = id;
+        this.sender = sender;
+        this.receivers = receivers;
+        this.subject = subject;
+        this.body = body;
+        this.date = date;
     }
 
     public String toString() {
@@ -53,6 +54,19 @@ public class Email implements Serializable {
 
     public boolean isReceiver(String user) {
         return receivers.contains(user);
+    }
+
+    public boolean equals(Object o) {
+        if (o == null || !(o instanceof Email))
+            return false;
+        Email e = (Email)o;
+        return
+                id == e.getId()
+                && sender.equals(e.getSender())
+                && receivers.equals(e.getReceivers())
+                && subject.equals(e.getSubject())
+                && body.equals(e.getBody())
+                && date.equals(e.getDate());
     }
 
 }

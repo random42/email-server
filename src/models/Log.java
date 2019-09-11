@@ -10,9 +10,9 @@ public class Log extends Observable {
         logs = Collections.synchronizedList(new LinkedList<>());
     }
 
-    public synchronized List<String> get() { return logs; }
+    public List<String> get() { return logs; }
 
-    public synchronized void add(String log) {
+    public void add(String log) {
         logs.add(log);
         notifyObservers();
     }

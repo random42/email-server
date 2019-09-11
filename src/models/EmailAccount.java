@@ -1,30 +1,45 @@
 package models;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Observable;
 
-public class EmailAccount {
+public class EmailAccount extends Observable {
     private String name;
-    private List<Email> inbox;
+    private LinkedList<Email> inbox;
 
     public EmailAccount(String name) {
         this.name = name;
-        inbox = new ArrayList<>();
+        inbox = new LinkedList<>();
     }
 
-    public EmailAccount(String name, List<Email> inbox) {
+    public EmailAccount(String name, LinkedList<Email> inbox) {
         this.name = name;
         this.inbox = inbox;
     }
 
-    public void addEmail(Email email) {
+    public synchronized void addEmail(Email email) {
         inbox.add(email);
+        notifyObservers();
     }
 
-    public void removeEmail(Email email) {
-        inbox.remove(email);
+    public synchronized boolean deleteEmail(Email email) {
+        boolean b = inbox.remove(email);
+        notifyObservers();
+        return b;
     }
 
-    public List<Email> getInbox() { return inbox; }
+    public synchronized void addEmails(List<Email> emails) {
+        inbox.addAll(emails);
+        notifyObservers();
+    }
+
+    public LinkedList<Email> getInbox() { return inbox; }
+
+    public void setInbox(LinkedList<Email> inbox) {
+        this.inbox = inbox;
+        notifyObservers();
+    }
 
     public String getName() {return name;}
 

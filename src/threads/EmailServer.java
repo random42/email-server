@@ -22,24 +22,29 @@ public class EmailServer extends Thread {
     }
 
     private EmailServer() {
+        this.setName("Server");
         online = false;
         users = Collections.synchronizedMap(new HashMap<String,Socket>());
     }
 
-    private synchronized Socket getSocket(String user) {
+    private Socket getSocket(String user) {
         return users.get(user);
     }
 
-    protected synchronized void setUser(String user, Socket socket) {
+    protected void setUser(String user, Socket socket) {
         users.put(user, socket);
     }
 
-    protected synchronized void removeUser(String user) {
+    protected void removeUser(String user) {
         users.remove(user);
     }
 
-    public synchronized boolean hasUser(String user) {
+    public boolean hasUser(String user) {
         return users.containsKey(user);
+    }
+
+    public Set<String> getOnlineUsers() {
+        return users.keySet();
     }
 
     public void sendToUser(Email email, String user) {
@@ -58,10 +63,10 @@ public class EmailServer extends Thread {
         }
     }
 
-    // returns list of online receivers
-    public List<String> sendEmail(Email e) {
-        List<String> receivers = e.getReceivers();
-        List<String> onlineReceivers = new ArrayList<>();
+    // returns set of online receivers
+    public Set<String> sendEmail(Email e) {
+        Set<String> receivers = e.getReceivers();
+        Set<String> onlineReceivers = new HashSet<>();
         for (String r : receivers) {
             if (hasUser(r)) {
                 sendToUser(e, r);
@@ -72,16 +77,12 @@ public class EmailServer extends Thread {
     }
 
     public void run() {
-        while (true) {
-            while (!online) {
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+        startServer();
+        while (this.isOnline()) {
             try {
+                System.out.println("Waiting for connections...");
                 Socket s = server.accept();
+                System.out.println("Incoming socket: " + s);
                 SocketListener l = new SocketListener(s);
                 l.start();
             } catch (SocketException e) { // server closed
@@ -103,7 +104,7 @@ public class EmailServer extends Thread {
             server.close();
             users.clear();
             online = false;
-            notifyAll();
+            System.out.println("Server stopped");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -113,10 +114,9 @@ public class EmailServer extends Thread {
         try {
             server = new ServerSocket(port);
             online = true;
-            notifyAll();
+            System.out.println("Server started at port " + port);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 }

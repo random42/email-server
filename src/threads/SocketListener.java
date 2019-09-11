@@ -13,55 +13,73 @@ public class SocketListener extends Thread {
     private EmailServer server;
     private String user;
     private Socket socket;
-    private ObjectInputStream in;
+    private boolean connected;
+
 
     public SocketListener(Socket socket) {
+        setName("Socket");
         this.socket = socket;
+        connected = true;
         ctrl = EmailCtrl.getInstance();
         server = EmailServer.getInstance();
-        try {
-            in = new ObjectInputStream(socket.getInputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    }
+
+    public ObjectInputStream getInput() throws IOException {
+        return new ObjectInputStream(socket.getInputStream());
     }
 
     public void run() {
-        while (!socket.isClosed()) {
+        ctrl.onSocketConnection();
+        while (connected) {
             ClientMessage m = listen();
             if (m == null) continue; // socket closed (unless some Exception has been printed)
-            else if (m.getType() == ClientMessage.Type.AUTH) { // msg type == AUTH
-                if (user != null) // auth already done
-                    ctrl.log(m.getUser() + " tried to authenticate more than once.");
-                else { // auth
-                    user = m.getUser();
-                    if (server.hasUser(user)) { // user has already a connected client opened that will be substituted by the new one
-                        ctrl.log(user + " authenticated on a new client.");
+            switch(m.getType()) {
+                case AUTH: {
+                    if (isAuthenticated())
+                        ctrl.log(m.getUser() + " tried to authenticate more than once.");
+                    else { // auth
+                        this.user = m.getUser();
+                        server.setUser(user, socket);
+                        this.setName("Socket-" + user);
+                        ctrl.onAuth(user, m.getLastDate());
                     }
-                    server.setUser(user, socket);
-                    ctrl.onAuth(user, m.getLastDate());
+                    break;
                 }
-            } else { // msg type == EMAIL
-                Email email = m.getEmail();
-                if (!email.getSender().equals(user)) // sender does not match user
-                    ctrl.log(user + " tried to fake an email.");
-                else // manage email
-                    ctrl.onEmail(email);
+                case SEND: {
+                    if (!isAuthenticated()) break;
+                    Email email = m.getEmail();
+                    if (!email.getSender().equals(user)) // sender does not match user
+                        ctrl.log(user + " tried to fake an email.");
+                    else // manage email
+                        ctrl.onSend(email);
+                    break;
+                }
+                case DELETE: {
+                    if (!isAuthenticated()) break;
+                    ctrl.onDelete(user, m.getEmail());
+                    break;
+                }
             }
         }
         // socket closed
-        server.removeUser(user);
-        ctrl.onUserDisconnected(user);
+        if (isAuthenticated()) {
+            server.removeUser(user);
+            ctrl.onUserDisconnected(user);
+        } else {
+            ctrl.log("Unauthenticated socket disconnected: " + socket);
+        }
+    }
+
+    private boolean isAuthenticated() {
+        return user != null;
     }
 
 
     private ClientMessage listen() {
         try {
-            return (ClientMessage)in.readObject();
+            return (ClientMessage)getInput().readObject();
         } catch (IOException e) { // socket closed
-            if (!socket.isClosed()) {
-                e.printStackTrace();
-            }
+            connected = false;
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }

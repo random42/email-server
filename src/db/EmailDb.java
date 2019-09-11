@@ -1,17 +1,13 @@
 package db;
 
-import models.*;
+import models.Email;
 
 import java.io.*;
 import java.util.*;
 
 public class EmailDb {
-    private static final String path = "data/emails";
-    private static final File file = new File(path);
+    private static final String root = "data/";
     private static EmailDb instance;
-
-    private ObjectOutputStream out;
-    private Map<String,EmailAccount> accounts;
 
     public static EmailDb getInstance() {
         if (instance == null)
@@ -19,102 +15,93 @@ public class EmailDb {
         return instance;
     }
 
-    private boolean isInitialized() {
-        return file.exists() && file.isFile();
-    }
-
-    private void loadDataFromFile() {
-        try {
-            ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
-            try {
-                Object o = in.readObject();
-                while (o != null) {
-                    Email e = (Email)o;
-                    addEmailToAccounts(e);
-                    o = in.readObject();
-                }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void init() {
-        if (!isInitialized()) {
-            File dir = file.getParentFile();
-            deleteDir(dir);
-            dir.mkdir();
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        accounts = Collections.synchronizedMap(new HashMap<>());
-        try {
-            out = new ObjectOutputStream(new FileOutputStream(file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        loadDataFromFile();
-    }
-
     private EmailDb() {
     }
 
-    private synchronized void addEmailToAccounts(Email e) {
-        for (String r : e.getReceivers()) {
-            if (!accounts.containsKey(r)) {
-                accounts.put(r, new EmailAccount(r));
-            }
-            EmailAccount account = accounts.get(r);
-            account.addEmail(e);
+    private File createFileIfNotExists(String user) throws IOException {
+        File f = new File(root + user);
+        if (!f.exists()) {
+            f.createNewFile();
+        }
+        return f;
+    }
+
+    private ObjectOutputStream getOutputStream(String user) throws IOException {
+        return new ObjectOutputStream(new FileOutputStream(createFileIfNotExists(user)));
+    }
+
+    private ObjectInputStream getInputStream(String user) throws IOException {
+        return new ObjectInputStream(new FileInputStream(createFileIfNotExists(user)));
+    }
+
+    public void init() {
+        File dir = new File(root);
+        if (!dir.exists())
+            dir.mkdir();
+        else if (!dir.isDirectory()) {
+            dir.delete();
+            dir.mkdir();
         }
     }
 
-    public synchronized void saveEmail(Email e) {
-        addEmailToAccounts(e);
+    public synchronized void writeEmails(String user, List<Email> emails, boolean append) {
         try {
-            out.writeObject(e);
+            ObjectOutputStream out = getOutputStream(user);
+            List<Email> toWrite;
+            if (append) {
+                toWrite = getEmails(user);
+                toWrite.addAll(emails);
+            }  else
+                toWrite = emails;
+            out.writeObject(toWrite);
+            out.flush();
+            out.close();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
 
+    public synchronized List<Email> getEmails(String user) {
+        List<Email> inbox = new LinkedList<>();
+        try {
+            ObjectInputStream in = getInputStream(user);
+            inbox = (List<Email>)in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            if (!(e instanceof EOFException))
+                e.printStackTrace();
+        }
+        return inbox;
+    }
 
-    public synchronized List<Email> getUserEmailsAfter(String user, Date last) {
+    public void deleteEmail(String user, Email email) {
+        List<Email> emails = getEmails(user);
+        emails.remove(email);
+        writeEmails(user, emails, false);
+    }
+
+    public void saveEmail(Email email) {
+        List<Email> l = new LinkedList<>();
+        l.add(email);
+        for (String r : email.getReceivers()) {
+            writeEmails(r, l, true);
+        }
+    }
+
+    public List<Email> getUserEmailsAfter(String user, Date last) {
+        List<Email> emails = getEmails(user);
         List<Email> req = new LinkedList<>();
-        EmailAccount a = getAccount(user);
-        if (a != null) {
-            List<Email> emails = a.getInbox();
-            for (Email e : emails) {
-                if (e.getDate().compareTo(last) > 0) {
-                    req.add(e);
-                }
+        for (Email e : emails) {
+            if (e.getDate().compareTo(last) > 0) {
+                req.add(e);
             }
         }
         return req;
     }
 
-    private synchronized EmailAccount getAccount(String user) {
-        return accounts.get(user);
-    }
-
-    // delete a non-empty directory
-    private static void deleteDir(File dir) {
-        if (dir.isFile()) {
-            dir.delete();
-            return;
+    public void clear() {
+        File dir = new File(root);
+        for (File f : dir.listFiles()) {
+            f.delete();
         }
-        File[] files = dir.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                deleteDir(f);
-            }
-        }
-        dir.delete();
     }
 }
