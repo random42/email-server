@@ -1,5 +1,6 @@
 package threads;
 
+import controllers.EmailCtrl;
 import models.Email;
 import socket.*;
 import java.io.IOException;
@@ -8,22 +9,20 @@ import java.net.*;
 import java.util.*;
 
 public class EmailServer extends Thread {
-    private static EmailServer instance;
-    private static final int port = 4999;
 
+    private EmailCtrl ctrl;
+    private int port;
     private boolean online;
+    // synchronized map, i metodi che operano sulla mappa non hanno bisogno di essere sincronizzati
     private Map<String, Socket> users;
     private ServerSocket server;
 
-    public static EmailServer getInstance() {
-        if (instance == null)
-            instance = new EmailServer();
-        return instance;
-    }
-
-    private EmailServer() {
-        this.setName("Server");
+    public EmailServer(int port) {
+        this.port = port;
+        // thread name
+        setName("Server");
         online = false;
+        ctrl = EmailCtrl.getInstance();
         users = Collections.synchronizedMap(new HashMap<String,Socket>());
     }
 
@@ -80,13 +79,12 @@ public class EmailServer extends Thread {
         startServer();
         while (this.isOnline()) {
             try {
-                System.out.println("Waiting for connections...");
                 Socket s = server.accept();
-                System.out.println("Incoming socket: " + s);
-                SocketListener l = new SocketListener(s);
+                ctrl.log("Incoming socket: " + s);
+                SocketListener l = new SocketListener(s, this);
                 l.start();
             } catch (SocketException e) { // server closed
-                if (online) { // expect not to be online
+                if (isOnline()) { // expect not to be online
                     e.printStackTrace();
                 }
             } catch (Exception e) {
@@ -102,9 +100,11 @@ public class EmailServer extends Thread {
     public synchronized void stopServer() {
         try {
             server.close();
+            for (Socket s : users.values()) {
+                s.close();
+            }
             users.clear();
             online = false;
-            System.out.println("Server stopped");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -114,9 +114,12 @@ public class EmailServer extends Thread {
         try {
             server = new ServerSocket(port);
             online = true;
-            System.out.println("Server started at port " + port);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void debug() {
+        System.out.println(getOnlineUsers());
     }
 }

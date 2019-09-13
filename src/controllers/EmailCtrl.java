@@ -8,6 +8,8 @@ import java.util.*;
 
 public class EmailCtrl {
 
+    private static final int serverPort = 10001;
+
     private static EmailCtrl instance;
     private Log log;
 
@@ -22,13 +24,17 @@ public class EmailCtrl {
     private EmailDb db;
 
     private EmailCtrl() {
-        server = EmailServer.getInstance();
         db = EmailDb.getInstance();
         log = new Log();
     }
 
+    public boolean isServerOnline() {
+        return server.isOnline();
+    }
+
     public void init() {
         db.init();
+        server = new EmailServer(serverPort);
     }
 
     public void onSocketConnection() {
@@ -37,13 +43,16 @@ public class EmailCtrl {
 
     public void onSend(Email e) {
         db.saveEmail(e);
-        log(e.getSender() + " sent an email with ID: " + e.getId());
-        server.sendEmail(e);
+        Set<String> receivers = server.sendEmail(e);
+        log(e.getSender() + " sent an email with ID: " + e.getId() + ", delivered to " + receivers.size() + " online receivers");
+        db.debugDb();
+        server.debug();
     }
 
     public void onAuth(String user, Date last) {
         log(user + " authenticated");
         List<Email> emails;
+        // il client non ha mail salvate
         if (last == null)
             emails = db.getEmails(user);
         else
@@ -55,10 +64,7 @@ public class EmailCtrl {
     public void onDelete(String user, Email e) {
         db.deleteEmail(user, e);
         log(user + " deleted an email with ID: " + e.getId());
-    }
-
-    public void onUserDisconnected(String user) {
-        log(user + " disconnected");
+        db.debugDb();
     }
 
     public void debugThreads() {
@@ -71,7 +77,6 @@ public class EmailCtrl {
     }
 
     public void log(Object msg) {
-        System.out.println(msg);
         log.add(msg.toString());
     }
 
@@ -81,10 +86,22 @@ public class EmailCtrl {
 
     public void debugUserInbox(String user) {
         List<Email> inbox = db.getEmails(user);
-        System.out.println(inbox);
+        System.out.println(inbox.size());
     }
 
     public void startServer() {
         server.start();
+        log("Server started at port: " + serverPort);
+    }
+
+    public void stopServer() {
+        server.stopServer();
+        server = new EmailServer(serverPort);
+        log("Server stopped");
+    }
+
+    public void clearDb() {
+        db.clear();
+        log("Db cleared");
     }
 }

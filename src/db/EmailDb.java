@@ -46,13 +46,14 @@ public class EmailDb {
 
     public synchronized void writeEmails(String user, List<Email> emails, boolean append) {
         try {
-            ObjectOutputStream out = getOutputStream(user);
             List<Email> toWrite;
             if (append) {
                 toWrite = getEmails(user);
+                System.out.println(toWrite.size());
                 toWrite.addAll(emails);
             }  else
                 toWrite = emails;
+            ObjectOutputStream out = getOutputStream(user);
             out.writeObject(toWrite);
             out.flush();
             out.close();
@@ -66,6 +67,7 @@ public class EmailDb {
         try {
             ObjectInputStream in = getInputStream(user);
             inbox = (List<Email>)in.readObject();
+            in.close();
         } catch (IOException | ClassNotFoundException e) {
             if (!(e instanceof EOFException))
                 e.printStackTrace();
@@ -96,6 +98,17 @@ public class EmailDb {
             }
         }
         return req;
+    }
+
+    public synchronized void debugDb() {
+        File dir = new File(root);
+        List<String> print = new LinkedList<>();
+        for (File f : dir.listFiles()) {
+            String user = f.getName();
+            int size = getEmails(user).size();
+            print.add(user + ": " + size);
+        }
+        System.out.println("DB: " + print);
     }
 
     public void clear() {

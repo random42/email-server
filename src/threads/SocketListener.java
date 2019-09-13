@@ -16,12 +16,12 @@ public class SocketListener extends Thread {
     private boolean connected;
 
 
-    public SocketListener(Socket socket) {
+    public SocketListener(Socket socket, EmailServer server) {
         setName("Socket");
         this.socket = socket;
         connected = true;
         ctrl = EmailCtrl.getInstance();
-        server = EmailServer.getInstance();
+        this.server = server;
     }
 
     public ObjectInputStream getInput() throws IOException {
@@ -61,12 +61,15 @@ public class SocketListener extends Thread {
                 }
             }
         }
-        // socket closed
-        if (isAuthenticated()) {
-            server.removeUser(user);
-            ctrl.onUserDisconnected(user);
-        } else {
-            ctrl.log("Unauthenticated socket disconnected: " + socket);
+        if (server.isOnline()) { // client closed the connection
+            if (isAuthenticated()) {
+                server.removeUser(user);
+                ctrl.log(user + " disconnected");
+            } else {
+                ctrl.log("Unauthenticated socket disconnected: " + socket);
+            }
+        } else { // server stopped
+            ctrl.log(user + " got disconnected");
         }
     }
 

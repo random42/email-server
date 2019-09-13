@@ -18,18 +18,19 @@ public class EmailAccount extends Observable {
         this.inbox = inbox;
     }
 
-    public synchronized void addEmail(Email email) {
+    public void addEmail(Email email) {
         inbox.add(email);
         notifyObservers();
     }
 
-    public synchronized boolean deleteEmail(Email email) {
+    public boolean deleteEmail(Email email) {
         boolean b = inbox.remove(email);
-        notifyObservers();
+        if (b)
+            notifyObservers();
         return b;
     }
 
-    public synchronized void addEmails(List<Email> emails) {
+    public void addEmails(List<Email> emails) {
         inbox.addAll(emails);
         notifyObservers();
     }
@@ -42,5 +43,11 @@ public class EmailAccount extends Observable {
     }
 
     public String getName() {return name;}
+
+    @Override
+    public void notifyObservers(){
+        setChanged();
+        super.notifyObservers();
+    }
 
 }
