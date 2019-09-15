@@ -119,7 +119,7 @@ public class EmailServer extends Thread {
         }
     }
 
-    public void debug() {
-        System.out.println(getOnlineUsers());
+    public String debug() {
+        return ("Online users: " + getOnlineUsers());
     }
 }

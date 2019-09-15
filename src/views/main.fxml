@@ -5,10 +5,10 @@
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.Pane?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="464.0" prefWidth="655.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="views.MainController">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="464.0" prefWidth="466.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="views.MainController">
    <children>
-      <TextArea fx:id="logs" layoutX="129.0" layoutY="39.0" prefHeight="386.0" prefWidth="499.0" />
-      <ToggleButton fx:id="button" layoutX="26.0" layoutY="130.0" mnemonicParsing="false" onAction="#toggleServer" prefHeight="46.0" prefWidth="81.0" text="Start" />
-      <Button layoutX="31.0" layoutY="334.0" mnemonicParsing="false" onAction="#clearDb" text="Clear DB" />
+      <TextArea fx:id="logs" layoutX="24.0" layoutY="39.0" prefHeight="386.0" prefWidth="301.0" />
+      <ToggleButton fx:id="button" layoutX="356.0" layoutY="140.0" mnemonicParsing="false" onAction="#toggleServer" prefHeight="46.0" prefWidth="81.0" text="Start" />
+      <Button layoutX="361.0" layoutY="304.0" mnemonicParsing="false" onAction="#clearDb" text="Clear DB" />
    </children>
 </Pane>

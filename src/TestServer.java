@@ -33,6 +33,5 @@ public class TestServer {
         for (Object a : args) {
             System.out.print(a);
         }
-        System.out.println();
     }
 }

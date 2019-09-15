@@ -49,7 +49,6 @@ public class EmailDb {
             List<Email> toWrite;
             if (append) {
                 toWrite = getEmails(user);
-                System.out.println(toWrite.size());
                 toWrite.addAll(emails);
             }  else
                 toWrite = emails;
@@ -100,7 +99,7 @@ public class EmailDb {
         return req;
     }
 
-    public synchronized void debugDb() {
+    public synchronized String debugDb() {
         File dir = new File(root);
         List<String> print = new LinkedList<>();
         for (File f : dir.listFiles()) {
@@ -108,7 +107,7 @@ public class EmailDb {
             int size = getEmails(user).size();
             print.add(user + ": " + size);
         }
-        System.out.println("DB: " + print);
+        return "DB: " + print;
     }
 
     public void clear() {

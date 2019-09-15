@@ -45,15 +45,14 @@ public class EmailCtrl {
         db.saveEmail(e);
         Set<String> receivers = server.sendEmail(e);
         log(e.getSender() + " sent an email with ID: " + e.getId() + ", delivered to " + receivers.size() + " online receivers");
-        db.debugDb();
-        server.debug();
+        log(db.debugDb());
+        log(server.debug());
     }
 
     public void onAuth(String user, Date last) {
         log(user + " authenticated");
         List<Email> emails;
-        // il client non ha mail salvate
-        if (last == null)
+        if (last == null) // il client non ha mail salvate
             emails = db.getEmails(user);
         else
             emails = db.getUserEmailsAfter(user, last);
@@ -64,12 +63,12 @@ public class EmailCtrl {
     public void onDelete(String user, Email e) {
         db.deleteEmail(user, e);
         log(user + " deleted an email with ID: " + e.getId());
-        db.debugDb();
+        log(db.debugDb());
     }
 
     public void debugThreads() {
         Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-        System.out.println(threadSet);
+        log(threadSet);
     }
 
     public void logOnlineUsers() {
@@ -82,11 +81,6 @@ public class EmailCtrl {
 
     public Log getLog() {
         return log;
-    }
-
-    public void debugUserInbox(String user) {
-        List<Email> inbox = db.getEmails(user);
-        System.out.println(inbox.size());
     }
 
     public void startServer() {
@@ -103,5 +97,6 @@ public class EmailCtrl {
     public void clearDb() {
         db.clear();
         log("Db cleared");
+        log(db.debugDb());
     }
 }

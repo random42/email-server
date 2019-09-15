@@ -29,7 +29,6 @@ public class SocketListener extends Thread {
     }
 
     public void run() {
-        ctrl.onSocketConnection();
         while (connected) {
             ClientMessage m = listen();
             if (m == null) continue; // socket closed (unless some Exception has been printed)
