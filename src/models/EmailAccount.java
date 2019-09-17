@@ -20,7 +20,7 @@ public class EmailAccount extends Observable {
 
     public void addEmail(Email email) {
         inbox.add(email);
-        notifyObservers();
+        notifyObservers(1);
     }
 
     public boolean deleteEmail(Email email) {
@@ -32,7 +32,7 @@ public class EmailAccount extends Observable {
 
     public void addEmails(List<Email> emails) {
         inbox.addAll(emails);
-        notifyObservers();
+        notifyObservers(emails.size());
     }
 
     public LinkedList<Email> getInbox() { return inbox; }
@@ -45,9 +45,8 @@ public class EmailAccount extends Observable {
     public String getName() {return name;}
 
     @Override
-    public void notifyObservers(){
+    public void notifyObservers(Object arg) {
         setChanged();
-        super.notifyObservers();
+        super.notifyObservers(arg);
     }
-
 }

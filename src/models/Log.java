@@ -14,10 +14,10 @@ public class Log extends Observable {
 
     public List<String> getAll() { return logs; }
 
-    public void add(String log) {
-        logs.add(log);
-        last = log;
-        notifyObservers();
+    public void add(String msg) {
+        logs.add(msg);
+        last = msg;
+        notifyObservers(msg);
     }
 
     public String getLast() {
@@ -25,9 +25,9 @@ public class Log extends Observable {
     }
 
     @Override
-    public void notifyObservers(){
+    public void notifyObservers(Object arg) {
         setChanged();
-        super.notifyObservers();
+        super.notifyObservers(arg);
     }
 
 }

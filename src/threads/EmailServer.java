@@ -23,7 +23,7 @@ public class EmailServer extends Thread {
         setName("Server");
         online = false;
         ctrl = EmailCtrl.getInstance();
-        users = Collections.synchronizedMap(new HashMap<String,Socket>());
+        users = Collections.synchronizedMap(new HashMap<>());
     }
 
     private Socket getSocket(String user) {
@@ -38,7 +38,7 @@ public class EmailServer extends Thread {
         users.remove(user);
     }
 
-    public boolean hasUser(String user) {
+    private boolean hasUser(String user) {
         return users.containsKey(user);
     }
 
@@ -47,7 +47,7 @@ public class EmailServer extends Thread {
     }
 
     public void sendToUser(Email email, String user) {
-        ArrayList<Email> e = new ArrayList<>();
+        List<Email> e = new LinkedList<>();
         e.add(email);
         sendToUser(e, user);
     }

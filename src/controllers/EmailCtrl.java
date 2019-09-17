@@ -8,7 +8,9 @@ import java.util.*;
 
 public class EmailCtrl {
 
-    private static final int serverPort = 10001;
+    private static final boolean DEBUG = false;
+
+    private static final int SERVER_PORT = 10001;
 
     private static EmailCtrl instance;
     private Log log;
@@ -34,19 +36,14 @@ public class EmailCtrl {
 
     public void init() {
         db.init();
-        server = new EmailServer(serverPort);
-    }
-
-    public void onSocketConnection() {
-        //debugThreads();
+        server = new EmailServer(SERVER_PORT);
     }
 
     public void onSend(Email e) {
         db.saveEmail(e);
         Set<String> receivers = server.sendEmail(e);
         log(e.getSender() + " sent an email with ID: " + e.getId() + ", delivered to " + receivers.size() + " online receivers");
-        log(db.debugDb());
-        log(server.debug());
+        debug();
     }
 
     public void onAuth(String user, Date last) {
@@ -58,21 +55,13 @@ public class EmailCtrl {
             emails = db.getUserEmailsAfter(user, last);
         if (!emails.isEmpty())
             server.sendToUser(emails, user);
+        debug();
     }
 
     public void onDelete(String user, Email e) {
         db.deleteEmail(user, e);
         log(user + " deleted an email with ID: " + e.getId());
-        log(db.debugDb());
-    }
-
-    public void debugThreads() {
-        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-        log(threadSet);
-    }
-
-    public void logOnlineUsers() {
-        log(server.getOnlineUsers());
+        debug();
     }
 
     public void log(Object msg) {
@@ -85,18 +74,27 @@ public class EmailCtrl {
 
     public void startServer() {
         server.start();
-        log("Server started at port: " + serverPort);
+        log("Server started at port: " + SERVER_PORT);
+        debug();
     }
 
     public void stopServer() {
         server.stopServer();
-        server = new EmailServer(serverPort);
+        server = new EmailServer(SERVER_PORT);
         log("Server stopped");
+        debug();
     }
 
     public void clearDb() {
         db.clear();
         log("Db cleared");
-        log(db.debugDb());
+        debug();
+    }
+
+    public void debug() {
+        if (DEBUG) {
+            log(server.debug());
+            log(db.debug());
+        }
     }
 }

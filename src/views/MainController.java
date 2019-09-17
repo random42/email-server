@@ -48,11 +48,13 @@ public class MainController implements Observer {
 
     @Override
     public void update(Observable o, Object arg) {
-        Log l = (Log)o;
-        String pre = "\n";
-        if (logs.getText().length() == 0)
-            pre = "";
-        logs.appendText(pre + l.getLast());
-        logs.setScrollLeft(0);
+        Platform.runLater(() -> {
+            String log = (String) arg;
+            String pre = "\n";
+            if (logs.getText().length() == 0) // primo log
+                pre = "";
+            logs.appendText(pre + log);
+            logs.setScrollLeft(0);
+        });
     }
 }

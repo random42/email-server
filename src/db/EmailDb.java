@@ -99,7 +99,7 @@ public class EmailDb {
         return req;
     }
 
-    public synchronized String debugDb() {
+    public synchronized String debug() {
         File dir = new File(root);
         List<String> print = new LinkedList<>();
         for (File f : dir.listFiles()) {
