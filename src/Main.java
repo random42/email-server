@@ -4,6 +4,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import controllers.EmailCtrl;
+import javafx.stage.WindowEvent;
 import models.Email;
 
 public class Main extends Application {
@@ -17,6 +18,11 @@ public class Main extends Application {
         primaryStage.setTitle("Email server");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
+        primaryStage.setOnCloseRequest((WindowEvent t) -> {
+            if (ctrl.isServerOnline())
+                ctrl.stopServer();
+            System.exit(0);
+        });
     }
 
 

@@ -9,7 +9,7 @@ public class Log extends Observable {
     private String last;
 
     public Log() {
-        logs = Collections.synchronizedList(new LinkedList<>());
+        logs = new LinkedList<>();
     }
 
     public List<String> getAll() { return logs; }

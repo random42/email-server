@@ -8,7 +8,7 @@ import java.util.*;
 
 public class EmailCtrl {
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private static final int SERVER_PORT = 10001;
 
@@ -31,7 +31,7 @@ public class EmailCtrl {
     }
 
     public boolean isServerOnline() {
-        return server.isOnline();
+        return server != null && server.isOnline();
     }
 
     public void init() {
@@ -64,7 +64,7 @@ public class EmailCtrl {
         debug();
     }
 
-    public void log(Object msg) {
+    public synchronized void log(Object msg) {
         log.add(msg.toString());
     }
 

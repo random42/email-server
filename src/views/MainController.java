@@ -47,7 +47,7 @@ public class MainController implements Observer {
     }
 
     @Override
-    public void update(Observable o, Object arg) {
+    public void update(Observable o, Object arg) { // log
         Platform.runLater(() -> {
             String log = (String) arg;
             String pre = "\n";
